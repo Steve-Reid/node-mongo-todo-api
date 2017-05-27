@@ -307,7 +307,7 @@ describe('POST /users/login', () => {
 
     request(app)
       .post('/users/login')
-      .send({ email, password })
+      .send({ email, password,  })
       .expect(400)
       .expect((res) => {
         expect(res.headers['x-auth']).toNotExist();
@@ -318,6 +318,29 @@ describe('POST /users/login', () => {
         }
 
         User.findById(users[1]._id).then((user) => {
+          expect(user.tokens.length).toBe(0);
+          done();
+        }).catch((e) => done(e));
+      });
+  });
+});
+
+describe('DELETE /users/me/token', () => {
+  it('should remove a user token on logout ', (done) => {
+    const token = users[0].tokens[0].token;
+    request(app)
+      .delete('/users/me/token')
+      .set('x-auth', token)
+      .expect(200)
+      .expect((res) => {
+        expect(res.headers['x-auth']).toNotExist();
+      })
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        User.findById(users[0]._id).then((user) => {
           expect(user.tokens.length).toBe(0);
           done();
         }).catch((e) => done(e));
