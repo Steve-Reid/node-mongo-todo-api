@@ -17,23 +17,31 @@ const users = [{
 }, {
   _id: userTwoId,
   email: 'bob@test.com',
-  password: 'userTwoPass'
+  password: 'userTwoPass',
+  tokens: [{
+    access: 'auth',
+    token: jwt.sign({ _id: userTwoId, access: 'auth' }, 'abc123')
+  }]
 }];
 
 const todos = [{
   _id: new ObjectID(),
-  text: 'First test todo'
+  text: 'First test todo',
+  _creator: userOneId
 }, {
   _id: new ObjectID(),
   text: 'Second test todo',
   completed: true,
-  completedAt: 4321
+  completedAt: 4321,
+  _creator: userTwoId
 }, {
   _id: new ObjectID(),
-  text: 'Thrid test todo'
+  text: 'Thrid test todo',
+  _creator: userTwoId
 }, {
   _id: new ObjectID(),
-  text: 'Fourth test todo'
+  text: 'Fourth test todo',
+  _creator: userTwoId
 }];
 
 const populateTodos = (done) => {
@@ -49,6 +57,6 @@ const populateUsers = (done) => {
 
     return Promise.all([userOne, userTwo]);
   }).then(() => done());
-}
+};
 
-module.exports = {todos, populateTodos, users, populateUsers};
+module.exports = { todos, populateTodos, users, populateUsers };
