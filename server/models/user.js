@@ -10,6 +10,7 @@ const UserSchema = new mongoose.Schema({
     required: true,
     minlength: 1,
     trim: true,
+    index: true,
     unique: true,
     validate: {
       validator: validator.isEmail,
