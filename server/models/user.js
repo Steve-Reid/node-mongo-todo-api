@@ -5,32 +5,32 @@ const _ = require('lodash');
 const bcrypt = require('bcryptjs');
 
 const UserSchema = new mongoose.Schema({
-    email: {
+  email: {
+    type: String,
+    required: true,
+    minlength: 1,
+    trim: true,
+    unique: true,
+    validate: {
+      validator: validator.isEmail,
+      message: '{VALUE} is not a valid email'
+    }
+  },
+  password: {
+    type: String,
+    required: true,
+    minlength: 6
+  },
+  tokens: [{
+    access: {
       type: String,
-      required: true,
-      minlength: 1,
-      trim: true,
-      unique: true,
-      validate: {
-        validator: validator.isEmail,
-        message: '{VALUE} is not a valid email'
-      }
+      required: true
     },
-    password: {
+    token: {
       type: String,
-      required: true,
-      minlength: 6
-    },
-    tokens: [{
-      access: {
-        type: String,
-        required: true
-      },
-      token: {
-        type: String,
-        required: true
-      }
-    }]
+      required: true
+    }
+  }]
 });
 
 UserSchema.methods.toJSON = function() {
@@ -43,7 +43,7 @@ UserSchema.methods.toJSON = function() {
 UserSchema.methods.generateAuthToken = function() {
   const user = this;
   const access = 'auth';
-  const token = jwt.sign({ _id: user._id.toHexString(), access }, 'abc123');
+  const token = jwt.sign({ _id: user._id.toHexString(), access }, process.env.JWT_SECRET);
 
   user.tokens.push({ access, token });
 
@@ -67,7 +67,7 @@ UserSchema.statics.findByToken = function(token) {
   let decoded;
 
   try {
-    decoded = jwt.verify(token, 'abc123');
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch (e) {
     // return new Promise((resolve, reject) => {
     //   reject();
@@ -97,10 +97,9 @@ UserSchema.statics.findByCredentials = function(email, password) {
         } else {
           reject();
         }
-
       });
-    })
-  })
+    });
+  });
 };
 
 UserSchema.pre('save', function(next) {
@@ -111,12 +110,12 @@ UserSchema.pre('save', function(next) {
       bcrypt.hash(user.password, salt, (err, hash) => {
         user.password = hash;
         next();
-      })
-    })
+      });
+    });
   } else {
     next();
   }
-})
+});
 
 const User = mongoose.model('User', UserSchema);
 
